@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
+
+#include "xm_cmn_util.h"
 
 /*
  * sum of two strings
