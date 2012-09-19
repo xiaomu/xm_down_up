@@ -271,7 +271,31 @@ int get_down_url(char *tmp_source_url, char *tmp_down_url)
 
 int down_video(char *save_dir, char *tmp_down_url)
 {
+	char url[URL_LEN], title[TITLE_LEN], cmd[CMD_LEN], cwd[PATH_LEN];
+	char *ext = ".flv";
+	char line[LINE_LEN * 2];
+	FILE *fp;
+	char *p;
 	
+	fp = xm_fopen(stderr, tmp_down_url, "r");
+	if(fp == NULL)
+	{
+		return -1;
+	}
+	
+	getcwd(cwd, PATH_LEN);
+	chdir(save_dir);
+	while(fgets(line, LINE_LEN * 2, fp) != NULL)
+	{
+		sscanf(line, "%s %s", url, title);
+		p = strchr(url, '?');
+		*p = '\0';
+		sprintf(cmd, "curl -o %s%s %s%s", title, ext, url, ext);
+		system(cmd);
+	}
+	chdir(cwd);
+	fclose(fp);
+	return 0;	
 }
 
 
