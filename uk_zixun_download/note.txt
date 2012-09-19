@@ -1,2 +1,10 @@
 <tbody></tbody>之间
 encodeURIComponent('http://v.youku.com/v_show/id_XNDUwMjI0MjI0')
+
+clipurl, cliptitle
+
+http://v.youku.com/v_show/id_XNDUxNzAxMDEy
+
+http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201005057BA5AC70A04E9D2A7E97BBDFF-F8F9-A169-A49D-CE48E5CBB4C7?K=db40dfd68240358a2827fef5,k2:1f4e74b35259e2285
+
+curl -o 1.flv url 无法下载上面的连接
