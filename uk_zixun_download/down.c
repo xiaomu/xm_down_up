@@ -3,6 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "xm_cmn_util.h"
 
@@ -20,6 +22,8 @@ int filter_source_url(char *tmp_source_url, char *log_source_url);
 int add_log_source_url(char *tmp_source_url, char *log_source_url);
 int get_down_url(char *tmp_source_url, char *tmp_down_url);
 int down_video(char *save_dir, char *tmp_down_url);
+int wget_real_url(char *url, char *real_url, int len);
+int gbk2utf(char *gbk_str, char *utf_str, int len);
 
 int main(int argc, char *argv[])
 {
@@ -43,12 +47,12 @@ int main(int argc, char *argv[])
 		mkdir(save_dir, 0777);
 	}
 
-#if 0	
+#if 1	
 	sprintf(cmd, "curl -o %s %s", tmp_ukzx, url);
 	system(cmd);
 	parse_source_url(tmp_ukzx, tmp_source_url);
 	filter_source_url(tmp_source_url, log_source_url);
-	//add_log_source_url(tmp_source_url, log_source_url);
+	add_log_source_url(tmp_source_url, log_source_url);
 	get_down_url(tmp_source_url, tmp_down_url);
 #endif
 	down_video(save_dir, tmp_down_url);
@@ -292,11 +296,10 @@ int get_down_url(char *tmp_source_url, char *tmp_down_url)
 
 int down_video(char *save_dir, char *tmp_down_url)
 {
-	char url[URL_LEN], title[TITLE_LEN], cmd[CMD_LEN], cwd[PATH_LEN];
-	char *ext = ".flv";
+	char url[URL_LEN], real_url[URL_LEN], title[TITLE_LEN], utf_title[TITLE_LEN], cmd[CMD_LEN], cwd[PATH_LEN];
+	//char *ext = ".flv";
 	char line[LINE_LEN * 2];
 	FILE *fp;
-	char *p;
 	char *p_start, *p_end;
 	
 	trace_fun();
@@ -319,14 +322,17 @@ int down_video(char *save_dir, char *tmp_down_url)
 		strncpy(title, p_start, p_end-p_start+1);
 		title[p_end-p_start+1] = '\0';
 		
-		title[0] = '0' + (p_end-p_start)%10;
-		title[1] = '\0';
-		
-		printf("url: %s\n", url);
-		printf("title: %s\n", title);
-		p = strchr(url, '?');
-		*p = '\0';
-		sprintf(cmd, "curl -o %s %s%s\"", title, url, ext);
+		if(wget_real_url(url, real_url, URL_LEN) != 0)
+		{
+			printf("wget_real_url failed\n");
+			return -1;
+		}
+		if(gbk2utf(title, utf_title, TITLE_LEN) != 0)
+		{
+			printf("gbk2utf failed\n");
+			return -1;
+		}
+		sprintf(cmd, "curl -o %s \"%s\"", utf_title, real_url);
 		printf("cmd: %s\n", cmd);
 		system(cmd);
 	}
@@ -334,6 +340,75 @@ int down_video(char *save_dir, char *tmp_down_url)
 	fclose(fp);
 	return 0;	
 }
+
+int wget_real_url(char *url, char *real_url, int len)
+{
+		char *tmp_wget = "tmp_wget", *tmp_no = "tmp_no";
+		char cmd[CMD_LEN], line[LINE_LEN];
+		char *p_start, *p_end;
+		char *tag_start = "http://", *tag_end = ".flv";
+		FILE *fp;
+		
+		sprintf(cmd, "wget -O %s %s > %s 2>&1", tmp_no, url, tmp_wget);
+		system(cmd);
+		fp = xm_fopen(stderr, tmp_wget, "r");
+		if(fp == NULL)
+		{
+			return -1;
+		}
+		while(fgets(line, LINE_LEN, fp) != NULL)
+		{
+			if(((p_start = strstr(line, tag_start)) != NULL) && ((p_end = strstr(line, tag_end)) != NULL))
+			{
+				strncpy(real_url, p_start, p_end-p_start+4);
+				if(len > p_end - p_start + 4)
+				{
+					real_url[p_end - p_start + 4] = '\0';
+				}
+				else
+				{
+					printf("size is too small\n");
+					return -1;
+				}
+				break;
+			}
+		}
+		
+		fclose(fp);
+		return 0;		
+}
+
+int gbk2utf(char *gbk_str, char *utf_str, int len)
+{
+	char *tmp_gbk = "tmp_gbk", *tmp_utf = "tmp_utf";
+	char cmd[CMD_LEN];
+	FILE *fp;
+	int ret;
+	
+	trace_fun();
+	fp = xm_fopen(stderr, tmp_gbk, "w");
+	if(fp == NULL)
+	{
+		return -1;
+	}
+	fprintf(fp, "%s", gbk_str);
+	fclose(fp);
+	
+	sprintf(cmd, "iconv -f \"gbk\" -t \"utf-8\" %s > %s", tmp_gbk, tmp_utf);
+	system(cmd);
+	
+	fp = xm_fopen(stderr, tmp_utf, "r");
+	if(fp == NULL)
+	{
+		return -1;
+	}
+	ret = fread(utf_str, sizeof(char), len-1, fp);
+	utf_str[ret] = '\0';
+	fclose(fp);
+	
+	return 0;
+}
+
 
 
 
