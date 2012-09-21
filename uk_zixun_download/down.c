@@ -28,21 +28,21 @@ int gbk2utf(char *gbk_str, char *utf_str, int len);
 int main(int argc, char *argv[])
 {
 	char *tmp_ukzx = "tmp_ukzx";
-	//char *url = "http://index.youku.com/protop/6";
-	char *url = "http://index.youku.com/prankdetail/6_0_3";
 	char *tmp_source_url = "tmp_source_url";
 	char *tmp_down_url = "tmp_down_url";
 	char *log_source_url = "log_source_url";
 	char cmd[CMD_LEN];
 	char *save_dir;
+	char *url;
 	
 	trace_fun();
-	if(argc < 2)
+	if(argc < 3)
 	{
-		printf("%s save_dir\n", argv[0]);
+		printf("%s url save_dir\n", argv[0]);
 		return -1;
 	}
-	save_dir = argv[1];
+	url = argv[1];
+	save_dir = argv[2];
 	if(access(save_dir, 0) != 0)
 	{
 		mkdir(save_dir, 0777);

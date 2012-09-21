@@ -110,7 +110,39 @@ int up_main_dir(char *dir)
 	return 0;
 }
 
-int up_class_dir(char *dir)
+int up_class_dir(char *class_name)
+{
+	int i;
+	char cwd[PATH_LEN];
+	DIR *dir_t;
+	struct dirent *ptr = NULL;
+
+	getcwd(cwd, PATH_LEN);
+	if(chdir(class_name) != 0)
+	{
+		printf("chdir %s failed\n", class_name);
+		return -1;
+	}
+	
+	if((dir_t = opendir("./")) == NULL)
+	{
+		printf("opendir %s failed\n", "./");
+		return -1;
+	}
+	while((ptr = readdir(dir_t)) != NULL)
+	{
+		if(ptr->d_type == DT_DIR)
+		{
+			up_channel_dir(ptr->d_name);
+		}
+	}
+	closedir(dir_t);	
+	chdir(cwd);
+
+	return 0;
+}
+
+int up_channel_dir(char *channel_name)
 {
 	char cmd[CMD_LEN] = {'\0'};
 	char *file_name;
@@ -124,16 +156,18 @@ int up_class_dir(char *dir)
 	char u_file_name[PATH_LEN * 3]; // url_encode filename
 	char u_channel_name[CHANNEL_LEN * 3]; // url encoded channel name
 	char *utf_en;
-	char channel_name[CHANNEL_LEN], cwd[PATH_LEN];
+	char cwd[PATH_LEN];
 	DIR *dir_t;
 	struct dirent *ptr = NULL;
 
 	getcwd(cwd, PATH_LEN);
-	if(chdir(dir) != 0)
+	if(chdir(channel_name) != 0)
 	{
-		printf("chdir %s failed\n", dir);
+		printf("chdir %s failed\n", channel_name);
 		return -1;
 	}
+	
+	/*
 	if(get_channel_name(channel_name, CHANNEL_LEN) != 0)
 	{
 		printf("get_channel_name failed\n");
@@ -143,6 +177,7 @@ int up_class_dir(char *dir)
 	{
 		channel_name[strlen(channel_name)-1] = '\0';
 	}
+	*/
 	
 	if((dir_t = opendir("./")) == NULL)
 	{

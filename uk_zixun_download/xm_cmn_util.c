@@ -9,9 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <time.h>
-
-#include "xm_cmn_util.h"
 
 /*
  * sum of two strings
@@ -275,6 +272,38 @@ char *strcat_ex(const char *str, const char *str2)
 }
 
 /*
+ *	key 中间不能有 " 字符
+ * 支持中文
+ */
+int xm_line_key_val(char *line, char *key, int key_len, char *val, int val_len)
+{
+	char *p_start, *p_end;
+	int cpy_len;
+	
+	p_start = strchr(line, '"');
+	if(p_start == NULL)
+	{
+		return -1;
+	}
+	p_end = p_start + 1;
+	p_end = strchr(p_end, '"');
+	if(p_end == NULL)
+	{
+		return -1;
+	}
+	cpy_len = ((key_len-1) > (p_end - p_start + 1))?(p_end - p_start + 1):(key_len - 1);
+	strncpy(key, p_start, cpy_len);
+	key[cpy_len] = '\0';
+	
+	p_start = strchr(p_end+1, '"');
+	p_end = strrchr(line, '"');
+	cpy_len = ((val_len-1) > (p_end - p_start + 1))?(p_end - p_start + 1):(val_len - 1);
+	strncpy(val, p_start, cpy_len);
+	val[cpy_len] = '\0';
+	return 0;
+}
+
+/*
  * 分配内存,判断是否成功,设置分配的空间为'\0';
  * 失败返回NULL, 输出错误信息;
  */
@@ -305,5 +334,4 @@ FILE *xm_fopen(FILE *out, const char *path, const char *mode)
 	}
 	return fp;	
 }
-
 
