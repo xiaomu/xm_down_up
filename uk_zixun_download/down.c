@@ -34,29 +34,38 @@ int main(int argc, char *argv[])
 	char cmd[CMD_LEN];
 	char *save_dir;
 	char *url;
+	char *uk_rank_config = "uk_rank_config";
+	FILE *fp;
+	char url[URL_LEN], save_dir[PATH_LEN], line[URL_LEN + PATH_LEN];
 	
 	trace_fun();
-	if(argc < 3)
+	fp = xm_fopen(stderr, uk_rank_config, "r");
+	if(fp == NULL)
 	{
-		printf("%s url save_dir\n", argv[0]);
 		return -1;
 	}
-	url = argv[1];
-	save_dir = argv[2];
-	if(access(save_dir, 0) != 0)
+	while(fgets(line, URL_LEN + PATH_LEN, fp) != NULL)
 	{
-		mkdir(save_dir, 0777);
+		if(xm_line_key_val(line, url, URL_LEN, save_dir, PATH_LEN) == 0)
+		{
+			if(access(save_dir, 0) != 0)
+			{
+				mkdir(save_dir, 0777);
+			}
+			
+		#if 1	
+			sprintf(cmd, "curl -o %s %s", tmp_ukzx, url);
+			system(cmd);
+			parse_source_url(tmp_ukzx, tmp_source_url);
+			filter_source_url(tmp_source_url, log_source_url);
+			add_log_source_url(tmp_source_url, log_source_url);
+			get_down_url(tmp_source_url, tmp_down_url);
+		#endif
+			down_video(save_dir, tmp_down_url);
+		}
 	}
-
-#if 1	
-	sprintf(cmd, "curl -o %s %s", tmp_ukzx, url);
-	system(cmd);
-	parse_source_url(tmp_ukzx, tmp_source_url);
-	filter_source_url(tmp_source_url, log_source_url);
-	add_log_source_url(tmp_source_url, log_source_url);
-	get_down_url(tmp_source_url, tmp_down_url);
-#endif
-	down_video(save_dir, tmp_down_url);
+	
+	fclose(fp);
 	return 0;
 }
 
