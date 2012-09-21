@@ -12,6 +12,7 @@
 #define CHANNEL_LEN 100
 #define PATH_LEN 1024
 
+//#define GBK
 
 char *get_name(char *name_ext);
 int get_upload_id(char *ip_id, char *upload_id);
@@ -79,10 +80,6 @@ int main(int argc, char *argv[])
 
 int up_main_dir(char *dir)
 {
-	char *tmp = "tmp";
-	FILE *fp;
-	char cmd[CMD_LEN] = {'\0'};
-	char line[PATH_LEN] = {'\0'};
 	int i;
 	char cwd[PATH_LEN];
 	DIR *dir_t;
@@ -91,16 +88,6 @@ int up_main_dir(char *dir)
 	getcwd(cwd, PATH_LEN);
 	chdir(dir);
 	
-	/*
-	sprintf(cmd, "dir /ad /b > %s", tmp);
-	system(cmd);
-	*/
-	fp = fopen(tmp, "w");
-	if(fp == NULL)
-	{
-		printf("fopen %s failed\n", tmp);
-		return -1;
-	}
 	if((dir_t = opendir("./")) == NULL)
 	{
 		printf("opendir %s failed\n", "./");
@@ -110,29 +97,14 @@ int up_main_dir(char *dir)
 	{
 		if(ptr->d_type == DT_DIR)
 		{
-			fprintf(fp, "%s\n", ptr->d_name);
+			i = atoi(ptr->d_name);
+			if((i>=1) && (i <= 22))
+			{
+				up_class_dir(ptr->d_name);
+			}
 		}
 	}
-	fclose(fp);
 	closedir(dir_t);	
-	
-	fp = fopen(tmp, "r");
-	if(fp == NULL)
-	{
-		printf("fopen %s failed\n", tmp);
-		return -1;
-	}
-
-	while(fgets(line, PATH_LEN, fp) != NULL)
-	{
-		line[strlen(line)-1] = '\0';
-		i = atoi(line);
-		if((i>=1) && (i <= 22))
-		{
-			up_class_dir(line);
-		}
-	}
-	fclose(fp);
 	chdir(cwd);
 
 	return 0;
@@ -140,11 +112,7 @@ int up_main_dir(char *dir)
 
 int up_class_dir(char *dir)
 {
-	//char *up_log = "up_log";
 	char cmd[CMD_LEN] = {'\0'};
-	char *tmp = "tmp";
-	char line[PATH_LEN] = {'\0'};
-	FILE *fp;
 	char *file_name;
 	char upload_ip[16];
 	char upload_id[30];
@@ -155,7 +123,6 @@ int up_class_dir(char *dir)
 	char *up_suffix = ".up";
 	char u_file_name[PATH_LEN * 3]; // url_encode filename
 	char u_channel_name[CHANNEL_LEN * 3]; // url encoded channel name
-//	int channel_idx;
 	char *utf_en;
 	char channel_name[CHANNEL_LEN], cwd[PATH_LEN];
 	DIR *dir_t;
@@ -167,17 +134,16 @@ int up_class_dir(char *dir)
 		printf("chdir %s failed\n", dir);
 		return -1;
 	}
-	
-	/*
-	sprintf(cmd, "dir /a-d /b > %s", tmp);
-	system(cmd);
-	*/
-	fp = fopen(tmp, "w");
-	if(fp == NULL)
+	if(get_channel_name(channel_name, CHANNEL_LEN) != 0)
 	{
-		printf("fopen %s failed\n", tmp);
+		printf("get_channel_name failed\n");
 		return -1;
 	}
+	if(channel_name[strlen(channel_name) -1]== '\n')
+	{
+		channel_name[strlen(channel_name)-1] = '\0';
+	}
+	
 	if((dir_t = opendir("./")) == NULL)
 	{
 		printf("opendir %s failed\n", "./");
@@ -187,94 +153,70 @@ int up_class_dir(char *dir)
 	{
 		if(ptr->d_type == DT_REG)
 		{
-			fprintf(fp, "%s\n", ptr->d_name);
-		}
-	}
-	fclose(fp);
-	closedir(dir_t);
-	
-	fp = fopen(tmp, "r");
-	if(fp == NULL)
-	{
-		printf("fopen %s failed\n", tmp);
-		return -1;
-	}
-
-	if(get_channel_name(channel_name, CHANNEL_LEN) != 0)
-	{
-		printf("get_channel_name failed\n");
-		return -1;
-	}
-	while(fgets(line, PATH_LEN, fp) != NULL)
-	{
-		line[strlen(line)-1] = '\0';
-		if((file_name = get_name(line)) != NULL)
-		{
-			/*
-			channel_idx = atoi(dir);
-			if(channel_name[channel_idx] == NULL)
+			if((file_name = get_name(ptr->d_name)) != NULL)
 			{
-				printf("don't create a corespond channel\n");
-				return -1;
-			}
-			*/
+#ifdef GBK				
+				utf_en = gbk_utf8(channel_name);
+				URLEncode(utf_en, strlen(utf_en), u_channel_name, 3*CHANNEL_LEN);
+				free(utf_en);
+				utf_en = gbk_utf8(file_name);
+				URLEncode(utf_en, strlen(utf_en), u_file_name, 3 * PATH_LEN);
+				free(utf_en);
+#endif		
 
-#if 1
-			utf_en = gbk_utf8(channel_name);
-			URLEncode(utf_en, strlen(utf_en), u_channel_name, 3*CHANNEL_LEN);
-			free(utf_en);
-			utf_en = gbk_utf8(file_name);
-			URLEncode(utf_en, strlen(utf_en), u_file_name, 3 * PATH_LEN);
-			free(utf_en);
+#ifndef GBK
+				URLEncode(channel_name, strlen(channel_name), u_channel_name, 3*CHANNEL_LEN);
+				URLEncode(file_name, strlen(file_name), u_file_name, 3 * PATH_LEN);
 #endif
-			sprintf(cmd,
-				"curl --data \"title=%s&class_id=%s&channel_name=%s&user_ip=%s&to_client=1&appkey=%s&token=%s\" \"http://api.open.pps.tv/video.php\" > %s", 
-				u_file_name,
-				dir,
-				u_channel_name,
-				user_ip,
-				appkey,
-				token,
-				step1_out);
-			system(cmd);
-			fp_step = fopen(step1_out, "r");
-			if(fp_step == NULL)
-			{
-				printf("fopen %s failed\n", step1_out);
-				return -1;
+				sprintf(cmd,
+					"curl --data \"title=%s&class_id=%s&channel_name=%s&user_ip=%s&to_client=1&appkey=%s&token=%s\" \"http://api.open.pps.tv/video.php\" > %s", 
+					u_file_name,
+					dir,
+					u_channel_name,
+					user_ip,
+					appkey,
+					token,
+					step1_out);
+				printf("%s\n", cmd);
+				system(cmd);
+				fp_step = fopen(step1_out, "r");
+				if(fp_step == NULL)
+				{
+					printf("fopen %s failed\n", step1_out);
+					return -1;
+				}
+				fgets(ip_id, IP_ID_LEN, fp_step);
+				ip_id[strlen(ip_id)-1] = '\0';
+				if(strlen(ip_id) == 0)
+				{
+					printf("step1 failed\n");
+					return -1;
+				}
+				fclose(fp_step);
+				get_upload_ip(ip_id, upload_ip);
+				get_upload_id(ip_id, upload_id);
+				
+				sprintf(cmd,
+					"curl --form \"file=@%s\" --form-string upload_id=%s \"http://%s/ugc/upload\"",
+					ptr->d_name,
+					upload_id,
+					upload_ip
+					);
+				//printf("uploading %s ... \n", ptr->d_name);
+				system(cmd);
+
+
+				up_bak = strcat_ex(ptr->d_name, up_suffix);
+				rename(ptr->d_name, up_bak);
+
+				free(file_name);
+				free(up_bak);
 			}
-			fgets(ip_id, IP_ID_LEN, fp_step);
-			ip_id[strlen(ip_id)-1] = '\0';
-			if(strlen(ip_id) == 0)
-			{
-				printf("step1 failed\n");
-				return -1;
-			}
-			fclose(fp_step);
-			get_upload_ip(ip_id, upload_ip);
-			get_upload_id(ip_id, upload_id);
-			
-			sprintf(cmd,
-				"curl --form \"file=@%s\" --form-string upload_id=%s \"http://%s/ugc/upload\"",
-				line,
-				upload_id,
-				upload_ip
-				);
-			printf("uploading %s ... \n", line);
-			system(cmd);
-
-
-			up_bak = strcat_ex(line, up_suffix);
-			rename(line, up_bak);
-
-			free(file_name);
-			free(up_bak);
-
 		}
 	}
 
+	closedir(dir_t);
 	chdir(cwd);
-
 	return 0;
 }
 

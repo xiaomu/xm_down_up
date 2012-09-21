@@ -96,8 +96,8 @@ body {
     <tr valgin='top' >
     <td align=left class="mn STYLE4">
     <br>下载地址：
-    <a href="http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=53fbf4315de74a9c2827ff2e,k2:1ec5d0b8b7ff32c0f" target="_blank" class="link"onclick='_alert();return false;'>http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F......5d0b8b7ff32c0f</a> <span id="d_clip_button">复制文件名</span> <span id="d_clip_button2">复制地址</span>
-    <script type="text/javascript">var showclip = 1;var clipurl = "http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=53fbf4315de74a9c2827ff2e,k2:1ec5d0b8b7ff32c0f";var cliptitle = "温家宝：重庆市委须反思王立军事件.flv";</script>
+    <a href="http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=69ebb92ef3b6653f261c91f2,k2:1ec5d0b8b7ff32c0f" target="_blank" class="link"onclick='_alert();return false;'>http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F......5d0b8b7ff32c0f</a> <span id="d_clip_button">复制文件名</span> <span id="d_clip_button2">复制地址</span>
+    <script type="text/javascript">var showclip = 1;var clipurl = "http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=69ebb92ef3b6653f261c91f2,k2:1ec5d0b8b7ff32c0f";var cliptitle = "温家宝：重庆市委须反思王立军事件.flv";</script>
     </td>
     </tr>
     <tr valgin='top' >
@@ -112,7 +112,7 @@ body {
 <$>
 <N>温家宝：重庆市委须反思王立军事件
 <P>优酷网
-<U>http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=53fbf4315de74a9c2827ff2e,k2:1ec5d0b8b7ff32c0f
+<U>http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=69ebb92ef3b6653f261c91f2,k2:1ec5d0b8b7ff32c0f
 <C>aHR0cDovL3YueW91a3UuY29tL3BsYXllci9nZXRQbGF5TGlzdC9WaWRlb0lEUy9YTXpZMU5qVXdPRGMyL3RpbWV6b25lLyswOC92ZXJzaW9uLzUvc291cmNlL3ZpZGVvP3Bhc3N3b3JkPSZuPTM=
 <PE>YOUKU
 <EXPLODEID>1
@@ -121,7 +121,7 @@ body {
           ">
 <strong><input type="submit" value="用硕鼠下载该视频" style="font-size: 15px;color:#FFFFFF; background: #7094B8; border-width: thin thin thin thin; border-color: #CCCCFF #CCCCCC #CCCCCC #CCCCFF;cursor:hand;" /></strong></form>
 <form action="get_m3u.php" method="post" name="m3uForm">
-<input type="hidden" name="inf" value="http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=53fbf4315de74a9c2827ff2e,k2:1ec5d0b8b7ff32c0f
+<input type="hidden" name="inf" value="http://f.youku.com/player/getFlvPath/sid/00_00/st/flv/fileid/03000201004F60357DAC3D04E9D2A7F487BCE1-9709-1CB7-96E6-53A28D51A9DC?K=69ebb92ef3b6653f261c91f2,k2:1ec5d0b8b7ff32c0f
 "/>
 <input type="hidden" name="filename" value="温家宝：重庆市委须反思王立军事件"/>
 &nbsp;&nbsp;<input type="submit" value="M3U列表" style="font-size: 15px;color:#FFFFFF; background: #7094B8; border-width: thin thin thin thin; border-color: #CCCCFF #CCCCCC #CCCCCC #CCCCFF;cursor:hand;" />
