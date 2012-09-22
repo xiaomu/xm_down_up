@@ -1,6 +1,6 @@
-down: xm_cmn_util.o xm_cmn_util.h down.c
-	gcc -g -Wall -o down down.c xm_cmn_util.o xm_cmn_util.h
-xm_cmn_util.o: xm_cmn_util.c xm_cmn_util.h
+down: down.c
+	gcc -Wall -o down down.c /usr/local/lib/libxm_cmn_util.a
+#gcc -g -Wall -o down down.c /usr/local/lib/libxm_cmn_util.a
 
 clean:
 	rm *.o

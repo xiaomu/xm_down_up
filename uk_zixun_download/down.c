@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "xm_cmn_util.h"
+#include <xm_cmn_util.h>
 
 #define trace_fun() {if(TRACE_FUN) fprintf(stderr, "-- %s\n", __FUNCTION__);}
 #define TRACE_FUN 1
@@ -16,6 +16,7 @@
 #define LINE_LEN 1024
 #define URL_LEN 1024
 #define TITLE_LEN 200
+#define CYCLE (10 * 60)
 
 int parse_source_url(char *tmp_ukzx, char *tmp_source_url);
 int filter_source_url(char *tmp_source_url, char *log_source_url);
@@ -32,40 +33,43 @@ int main(int argc, char *argv[])
 	char *tmp_down_url = "tmp_down_url";
 	char *log_source_url = "log_source_url";
 	char cmd[CMD_LEN];
-	char *save_dir;
-	char *url;
 	char *uk_rank_config = "uk_rank_config";
 	FILE *fp;
 	char url[URL_LEN], save_dir[PATH_LEN], line[URL_LEN + PATH_LEN];
 	
 	trace_fun();
-	fp = xm_fopen(stderr, uk_rank_config, "r");
-	if(fp == NULL)
+	while(1)
 	{
-		return -1;
-	}
-	while(fgets(line, URL_LEN + PATH_LEN, fp) != NULL)
-	{
-		if(xm_line_key_val(line, url, URL_LEN, save_dir, PATH_LEN) == 0)
+		fp = xm_fopen(stderr, uk_rank_config, "r");
+		if(fp == NULL)
 		{
-			if(access(save_dir, 0) != 0)
-			{
-				mkdir(save_dir, 0777);
-			}
-			
-		#if 1	
-			sprintf(cmd, "curl -o %s %s", tmp_ukzx, url);
-			system(cmd);
-			parse_source_url(tmp_ukzx, tmp_source_url);
-			filter_source_url(tmp_source_url, log_source_url);
-			add_log_source_url(tmp_source_url, log_source_url);
-			get_down_url(tmp_source_url, tmp_down_url);
-		#endif
-			down_video(save_dir, tmp_down_url);
+			return -1;
 		}
+		while(fgets(line, URL_LEN + PATH_LEN, fp) != NULL)
+		{
+			if(xm_line_key_val(line, url, URL_LEN, save_dir, PATH_LEN) == 0)
+			{
+				trim_boundary_quoto(save_dir);
+				if(access(&save_dir[1], 0) != 0)
+				{
+					mkdir(save_dir, 0777);
+				}
+				
+			#if 1	
+				sprintf(cmd, "curl -o %s %s", tmp_ukzx, url);
+				system(cmd);
+				parse_source_url(tmp_ukzx, tmp_source_url);
+				filter_source_url(tmp_source_url, log_source_url);
+				add_log_source_url(tmp_source_url, log_source_url);
+				get_down_url(tmp_source_url, tmp_down_url);
+			#endif
+				down_video(save_dir, tmp_down_url);
+			}
+		}
+		fclose(fp);
+		
+		sleep(CYCLE);
 	}
-	
-	fclose(fp);
 	return 0;
 }
 
@@ -311,6 +315,7 @@ int down_video(char *save_dir, char *tmp_down_url)
 	char line[LINE_LEN * 2];
 	FILE *fp;
 	char *p_start, *p_end;
+	char *quoto_title, *quoto_title_tmp, *utf_title_tmp, *utf_title_tmp_suffix = ".tmp";
 	
 	trace_fun();
 	fp = xm_fopen(stderr, tmp_down_url, "r");
@@ -320,7 +325,11 @@ int down_video(char *save_dir, char *tmp_down_url)
 	}
 	
 	getcwd(cwd, PATH_LEN);
-	chdir(save_dir);
+	if(chdir(save_dir) != 0)
+	{
+		printf("chdir %s failed\n", save_dir);
+		return -1;
+	}
 	while(fgets(line, LINE_LEN * 2, fp) != NULL)
 	{
 		p_start = &line[0];
@@ -337,16 +346,44 @@ int down_video(char *save_dir, char *tmp_down_url)
 			printf("wget_real_url failed\n");
 			return -1;
 		}
+		trim_boundary_quoto(title);
 		if(gbk2utf(title, utf_title, TITLE_LEN) != 0)
 		{
 			printf("gbk2utf failed\n");
 			return -1;
 		}
-		sprintf(cmd, "curl -o %s \"%s\"", utf_title, real_url);
+		utf_title_tmp = strcat_ex(utf_title, utf_title_tmp_suffix);
+		quoto_title = xm_vsprintf_ex(strlen(utf_title)+3, "\"%s\"", utf_title);
+		if(quoto_title == NULL)
+		{
+			free(utf_title_tmp);
+			continue;
+		}
+		quoto_title_tmp = xm_vsprintf_ex(strlen(utf_title_tmp) + 3, "\"%s\"", utf_title_tmp);
+		if(quoto_title_tmp == NULL)
+		{
+			free(utf_title_tmp);
+			free(quoto_title);
+			continue;
+		}
+		sprintf(cmd, "curl -o %s \"%s\"", quoto_title_tmp, real_url);
 		printf("cmd: %s\n", cmd);
 		system(cmd);
+		if(rename(utf_title_tmp, utf_title) != 0)
+		{
+			perror("");
+			printf("rename %s %s failed\n", utf_title_tmp, utf_title);
+		}
+		free(utf_title_tmp);
+		free(quoto_title);
+		free(quoto_title_tmp);
 	}
-	chdir(cwd);
+	if(chdir(cwd) != 0)
+	{
+		printf("chdir %s failed\n", cwd);
+		return -1;
+	}
+	
 	fclose(fp);
 	return 0;	
 }

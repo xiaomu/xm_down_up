@@ -11,6 +11,7 @@
 #define IP_ID_LEN 100
 #define CHANNEL_LEN 100
 #define PATH_LEN 1024
+#define CYCLE (10*60)
 
 //#define GBK
 
@@ -23,6 +24,7 @@ int up_class_dir(char *dir);
 int up_main_dir(char *dir);
 char *gbk_utf8(char *str);
 int get_channel_name(char *channel_name, int len);
+int up_channel_dir(char *class_name, char *channel_name);
 
 static char *up_exts[] = 
 {
@@ -74,7 +76,11 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	up_main_dir(dir);
+	while(1)
+	{
+		up_main_dir(dir);
+		sleep(CYCLE);
+	}
 	return 0;
 }
 
@@ -86,7 +92,11 @@ int up_main_dir(char *dir)
 	struct dirent *ptr = NULL;
 
 	getcwd(cwd, PATH_LEN);
-	chdir(dir);
+	if(chdir(dir) != 0)
+	{
+		printf("chdir %s failed\n", dir);
+		return -1;
+	}
 	
 	if((dir_t = opendir("./")) == NULL)
 	{
@@ -105,14 +115,18 @@ int up_main_dir(char *dir)
 		}
 	}
 	closedir(dir_t);	
-	chdir(cwd);
+	if(chdir(cwd) != 0)
+	{
+		printf("chdir %s failed\n", cwd);
+		return -1;
+	}
 
 	return 0;
 }
 
 int up_class_dir(char *class_name)
 {
-	int i;
+	//int i;
 	char cwd[PATH_LEN];
 	DIR *dir_t;
 	struct dirent *ptr = NULL;
@@ -131,18 +145,22 @@ int up_class_dir(char *class_name)
 	}
 	while((ptr = readdir(dir_t)) != NULL)
 	{
-		if(ptr->d_type == DT_DIR)
+		if((ptr->d_type == DT_DIR) && strcmp(ptr->d_name, ".") && strcmp(ptr->d_name, ".."))
 		{
-			up_channel_dir(ptr->d_name);
+			up_channel_dir(class_name, ptr->d_name);
 		}
 	}
 	closedir(dir_t);	
-	chdir(cwd);
+	if(chdir(cwd) != 0)
+	{
+		printf("chdir %s failed\n", cwd);
+		return -1;
+	}
 
 	return 0;
 }
 
-int up_channel_dir(char *channel_name)
+int up_channel_dir(char *class_name, char *channel_name)
 {
 	char cmd[CMD_LEN] = {'\0'};
 	char *file_name;
@@ -155,7 +173,7 @@ int up_channel_dir(char *channel_name)
 	char *up_suffix = ".up";
 	char u_file_name[PATH_LEN * 3]; // url_encode filename
 	char u_channel_name[CHANNEL_LEN * 3]; // url encoded channel name
-	char *utf_en;
+	
 	char cwd[PATH_LEN];
 	DIR *dir_t;
 	struct dirent *ptr = NULL;
@@ -191,6 +209,7 @@ int up_channel_dir(char *channel_name)
 			if((file_name = get_name(ptr->d_name)) != NULL)
 			{
 #ifdef GBK				
+				char *utf_en;
 				utf_en = gbk_utf8(channel_name);
 				URLEncode(utf_en, strlen(utf_en), u_channel_name, 3*CHANNEL_LEN);
 				free(utf_en);
@@ -206,13 +225,13 @@ int up_channel_dir(char *channel_name)
 				sprintf(cmd,
 					"curl --data \"title=%s&class_id=%s&channel_name=%s&user_ip=%s&to_client=1&appkey=%s&token=%s\" \"http://api.open.pps.tv/video.php\" > %s", 
 					u_file_name,
-					dir,
+					class_name,
 					u_channel_name,
 					user_ip,
 					appkey,
 					token,
 					step1_out);
-				printf("%s\n", cmd);
+				//printf("%s\n", cmd);
 				system(cmd);
 				fp_step = fopen(step1_out, "r");
 				if(fp_step == NULL)
@@ -237,7 +256,7 @@ int up_channel_dir(char *channel_name)
 					upload_id,
 					upload_ip
 					);
-				//printf("uploading %s ... \n", ptr->d_name);
+				printf("uploading %s ... \n", ptr->d_name);
 				system(cmd);
 
 
@@ -251,7 +270,11 @@ int up_channel_dir(char *channel_name)
 	}
 
 	closedir(dir_t);
-	chdir(cwd);
+	if(chdir(cwd) != 0)
+	{
+		printf("chdir %s failed\n", cwd);
+		return -1;
+	}
 	return 0;
 }
 
